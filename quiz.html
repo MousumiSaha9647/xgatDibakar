@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
+    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; }
+    .question { margin-bottom: 15px; }
+    button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+    button:hover { background: #45a049; }
+    #result { margin-top: 20px; font-weight: bold; }
+    #timer { font-weight: bold; color: red; text-align: center; margin-bottom: 20px; }
+    .admin-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 20px; }
+    input, textarea { width: 100%; padding: 5px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Online Quiz</h1>
+    <div id="timer">Time Left: 30 seconds</div>
+    <form id="quizForm"></form>
+    <button type="button" onclick="checkAnswers()">Submit</button>
+    <div id="result"></div>
+
+    <!-- Admin Panel -->
+    <div class="admin-section">
+      <h2>Admin Login</h2>
+      <input type="password" id="adminPass" placeholder="Enter admin password">
+      <button onclick="loginAdmin()">Login</button>
+
+      <div id="adminPanel" style="display:none;">
+        <h3>Add New Question</h3>
+        <textarea id="newQuestion" placeholder="Enter question"></textarea>
+        <input type="text" id="opt1" placeholder="Option 1">
+        <input type="text" id="opt2" placeholder="Option 2">
+        <input type="text" id="opt3" placeholder="Option 3">
+        <input type="text" id="answer" placeholder="Correct answer">
+        <button onclick="addQuestion()">Add Question</button>
+
+        <h3>Set Timer</h3>
+        <input type="number" id="setTime" placeholder="Seconds (e.g., 60)">
+        <button onclick="updateTime()">Update Time</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let timeLeft = 30;
+    let timer;
+
+    // Initial 9 questions
+    let questions = [
+      { q: "She prepares tea", options: ["Tea is prepared by her.", "Tea are prepared by her.", "She is prepared tea."], answer: "Tea is prepared by her." },
+      { q: "Nita types letters", options: ["Letters are typed by Nita.", "Letters is typed by Nita.", "Nita is typed letters by."], answer: "Letters are typed by Nita." },
+      { q: "Grandmother tells us stories", options: ["Stories are told to us by grandmother.", "Stories is told by grandmother us.", "Grandmother are told stories to us."], answer: "Stories are told to us by grandmother." },
+      { q: "The team gets prizes", options: ["Prizes are got by the team.", "Prizes is got by the team.", "The team is got prizes."], answer: "Prizes are got by the team." },
+      { q: "Rita reads a story book", options: ["A story book is read by Rita.", "A story book are read by Rita.", "Rita is read a story book by."], answer: "A story book is read by Rita." },
+      { q: "She sings a beautiful song", options: ["A beautiful song is sung by her.", "A beautiful song are sung by her.", "She is sung a beautiful song by."], answer: "A beautiful song is sung by her." },
+      { q: "The traffic police shows the driver red signal", options: ["The driver is shown red signal by the traffic police.", "Red signal is showed to the driver by the traffic police.", "The traffic police is shown red signal to the driver."], answer: "The driver is shown red signal by the traffic police." },
+      { q: "Someone calls her loudly", options: ["She is called loudly by someone.", "Her is called loudly by someone.", "Someone is called her loudly by."], answer: "She is called loudly by someone." },
+      { q: "Each of the students works out the sum", options: ["The sum is worked out by each of the students.", "The sum are worked out by each of the students.", "Each of the students is worked out the sum."], answer: "The sum is worked out by each of the students." }
+    ];
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(function() {
+        if(timeLeft <= 0){
+          clearInterval(timer);
+          checkAnswers();
+          document.getElementById("timer").innerText = "Time's up!";
+        } else {
+          document.getElementById("timer").innerText = "Time Left: " + timeLeft + " seconds";
+        }
+        timeLeft -= 1;
+      }, 1000);
+    }
+
+    function loadQuestions() {
+      const form = document.getElementById("quizForm");
+      form.innerHTML = "";
+      questions.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.classList.add("question");
+        div.innerHTML = `<p>${index+1}) ${item.q}</p>` +
+          item.options.map(opt => `<label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label><br>`).join("");
+        form.appendChild(div);
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      questions.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && selected.value === item.answer) score++;
+      });
+      document.getElementById("result").innerText = "Your score: " + score + "/" + questions.length;
+    }
+
+    function loginAdmin() {
+      const pass = document.getElementById("adminPass").value;
+      if(pass === "admin123"){
+        document.getElementById("adminPanel").style.display = "block";
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+
+    function addQuestion() {
+      const q = document.getElementById("newQuestion").value.trim();
+      const opt1 = document.getElementById("opt1").value.trim();
+      const opt2 = document.getElementById("opt2").value.trim();
+      const opt3 = document.getElementById("opt3").value.trim();
+      const ans = document.getElementById("answer").value.trim();
+
+      if(q && opt1 && opt2 && opt3 && ans){
+        questions.push({ q: q, options: [opt1, opt2, opt3], answer: ans });
+        loadQuestions();
+        alert("New question added!");
+        document.getElementById("newQuestion").value = "";
+        document.getElementById("opt1").value = "";
+        document.getElementById("opt2").value = "";
+        document.getElementById("opt3").value = "";
+        document.getElementById("answer").value = "";
+      } else {
+        alert("Please fill all fields!");
+      }
+    }
+
+    function updateTime() {
+      const newTime = parseInt(document.getElementById("setTime").value);
+      if(newTime > 0){
+        timeLeft = newTime;
+        startTimer();
+        alert("Time updated to: " + newTime + " seconds");
+      } else {
+        alert("Enter a valid time!");
+      }
+    }
+
+    // Initial load
+    loadQuestions();
+    startTimer();
+  </script>
+</body>
+</html>
